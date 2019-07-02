@@ -5,6 +5,14 @@ require("../models/userBlog.model");
 
 const UserBlogModel = mongoose.model("userBlog");
 
+const findAllUsers = async (req, res) => {
+  const UserBlogs = db.getCollection("test");
+  // const testSchema = mongoose.model('test', new Schema({ name: String }))
+  const foundUsers = await UserBlogs.find();
+  res.json(foundUsers);
+};
+
+
 const userSignUp = async input => {
   const { username, password } = input;
   const saltRound = 10;
@@ -25,4 +33,4 @@ const userLogin = async input => {
   else return isUser;
 };
 
-module.exports = { userSignUp, userLogin };
+module.exports = { userSignUp, userLogin, findAllUsers };
