@@ -6,7 +6,7 @@ require("../models/userBlog.model");
 const UserBlogModel = mongoose.model("userBlog");
 
 const findAllUsers = async (req, res) => {
-  const UserBlogs = db.getCollection("test");
+  const UserBlogs = await db.getCollection("test");
   // const testSchema = mongoose.model('test', new Schema({ name: String }))
   const foundUsers = await UserBlogs.find();
   res.json(foundUsers);
