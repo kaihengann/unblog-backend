@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 require("../utils/db");
-require("../controllers/user.model");
+require("../models/userBlog.model");
 
-const UserModel = mongoose.model("User");
+const UserBlogModel = mongoose.model("userBlog");
 
-const signUp = async input => {
+const userSignUp = async input => {
   const { username, password } = input;
   const saltRound = 10;
   const hash = await bcrypt.hash(password, saltRound);
@@ -13,14 +13,16 @@ const signUp = async input => {
     username: username,
     password: hash
   };
-  const newUser = new UserModel(userWithHash);
-  return await newUser.save();
+  const newUserBlog = new UserBlogModel(userWithHash);
+  return await newUserBlog.save();
 };
 
-const login = async input => {
+const userLogin = async input => {
   const { username, password } = input;
-  const foundUser = await UserModel.findOne({ username });
+  const foundUser = await UserBlogModel.findOne({ username });
   const isUser = await bcrypt.compare(password, foundUser.password);
   if (isUser) return { username };
   else return isUser;
 };
+
+module.exports = { userSignUp, userLogin };

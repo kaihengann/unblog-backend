@@ -1,22 +1,23 @@
 const mongoose = require("mongoose");
+mongoose.set('useCreateIndex', true);
+const Schema = mongoose.Schema
 
 const postSchema = new Schema({
   title: { type: String },
   body: { type: String },
-  createOn: new Date(),
-  updatedOn: new Date()
-})
+  createOn: { type: Date, default: Date.now },
+  updatedOn: { type: Date, default: Date.now }
+});
 
-const userBlogSchema = new mongoose.Schema({
+const userBlogSchema = new Schema({
   username: { type: String, required: true, unique: true },
   password: {
     type: String,
     required: true,
     match: /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/
   },
-  posts: [{ type: Schema.Types.ObjectId, ref: 'postSchema'}],
+  posts: [{ postSchema }],
   salt: String
 });
 
-
-module.exports = mongoose.model = ("User", userBlogSchema);
+module.exports = mongoose.model("userBlog", userBlogSchema);
