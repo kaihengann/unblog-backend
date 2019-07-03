@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-mongoose.set("useCreateIndex", true);
 const Schema = mongoose.Schema;
 
 const userBlogSchema = new Schema({
@@ -19,4 +18,4 @@ const userBlogSchema = new Schema({
   ]
 });
 
-module.exports = mongoose.model("userBlog", userBlogSchema);
+mongoose.model("userBlog", userBlogSchema);

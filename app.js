@@ -6,9 +6,6 @@ const userBlogRouter = require("./src/routes/userBlog.route");
 app.use(cors());
 app.use(express.json());
 
-// remove
-app.get("/", (req, res) => res.send("test"));
-
 app.use("/userBlogs", userBlogRouter);
 
 app.use((err, req, res, next) => {

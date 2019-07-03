@@ -12,20 +12,7 @@ const generateToken = user =>
     { expiresIn: "1h" }
   );
 
-// Remove: Test data
-const UserBlogModel = mongoose.model("userBlog");
-const testUserBlog = new UserBlogModel({
-  username: uuidv4(),
-  password: "testPassword123",
-  posts: [
-    {
-      postId: uuidv4(),
-      postTitle: "myfirstpost",
-      postBody: "somecontentityped"
-    }
-  ]
-});
-testUserBlog.save();
+const UserBlogModel = mongoose.model('userBlog')
 
 const findAllUserBlogs = async (req, res) => {
   try {
