@@ -7,7 +7,9 @@ module.exports = [
       {
         postId: "postId1",
         postTitle: "Post1",
-        postBody: "PostBody1"
+        postBody: "PostBody1",
+        createdOn: "2019-07-03T12:47:40.407Z",
+        updatedOn: "2019-07-03T12:47:40.407Z"
       }
     ]
   },
@@ -19,7 +21,9 @@ module.exports = [
       {
         postId: "postId2",
         postTitle: "Post2",
-        postBody: "PostBody2"
+        postBody: "PostBody2",
+        createdOn: "2019-07-04T12:47:40.407Z",
+        updatedOn: "2019-07-04T12:47:40.407Z"
       }
     ]
   }

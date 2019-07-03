@@ -12,15 +12,15 @@ const generateToken = user =>
     { expiresIn: "1h" }
   );
 
-const UserBlogModel = mongoose.model('userBlog')
+const UserBlogModel = mongoose.model("userBlog");
 
 const findAllUserBlogs = async (req, res) => {
   try {
     const foundUserBlogs = await UserBlogModel.find();
-    res.json(foundUserBlogs);
+    return await res.json(foundUserBlogs);
   } catch (err) {
     const error = new Error("UserBlogs not found");
-    res.status(404).json(error.message);
+    return await res.status(404).json(error.message);
   }
 };
 
@@ -28,10 +28,10 @@ const findOneUserBlog = async (req, res) => {
   try {
     const { username } = req.params;
     const foundUserBlog = await UserBlogModel.findOne({ username });
-    res.json(foundUserBlog);
+    return await res.json(foundUserBlog);
   } catch (err) {
     const error = new Error("UserBlog not found");
-    res.status(404).json(error.message);
+    return await res.status(404).json(error.message);
   }
 };
 
@@ -39,10 +39,10 @@ const findAllPosts = async (req, res) => {
   try {
     const { username } = req.params;
     const foundUserBlog = await UserBlogModel.findOne({ username });
-    return res.json(foundUserBlog.posts);
+    return await res.json(foundUserBlog.posts);
   } catch (err) {
     const error = new Error("Posts not found");
-    res.status(404).json(error.message);
+    return await res.status(404).json(error.message);
   }
 };
 
@@ -52,26 +52,10 @@ const findOnePost = async (req, res) => {
     const foundUserBlog = await UserBlogModel.findOne({ username });
     const posts = foundUserBlog.posts;
     const foundPost = posts.find(post => post.postId === postId);
-    return res.json(foundPost);
+    return await res.json(foundPost);
   } catch (err) {
     const error = new Error("Post not found");
-    res.status(404).json(error.message);
-  }
-};
-
-const isUserLoggedIn = async (req, res, next) => {
-  try {
-    const header = req.headers.authorization;
-    const token = header.split(" ")[1];
-    const verifyToken = token => jwt.verify(token, "mysecret");
-    const _id = verifyToken(token).sub;
-    const foundUser = db.findOne({ _id });
-    if (foundUser) {
-      return res.json({ username: foundUser.username });
-    }
-    res.sendStatus(401);
-  } catch (err) {
-    next(err);
+    return await res.status(404).json(error.message);
   }
 };
 
@@ -86,10 +70,10 @@ const createUserBlog = async (req, res) => {
     };
     const newUserBlog = new UserBlogModel(userInfo);
     await newUserBlog.save();
-    return res.status(201).json(newUserBlog);
+    return await res.status(201).json(newUserBlog);
   } catch (err) {
     const error = new Error("UserBlog not created");
-    res.status(400).json(error.message);
+    return await res.status(400).json(error.message);
   }
 };
 
@@ -97,6 +81,7 @@ const createPost = async (req, res, next) => {
   try {
     const { username } = req.params;
     const { postTitle, postBody } = req.body;
+
     const newPost = {
       postId: uuidv4(),
       postTitle,
@@ -104,20 +89,24 @@ const createPost = async (req, res, next) => {
       createdOn: Date.now(),
       updatedOn: Date.now()
     };
-    const foundUserBlog = await UserBlogModel.findOne({ username });
-    const posts = foundUserBlog.posts;
-    posts.push(newPost);
-    await foundUserBlog.save();
+
+    const foundUserBlog = await UserBlogModel.findOneAndUpdate(
+      { username },
+      { $push: { posts: newPost } },
+      { new: true }
+    );
+
     return await res.status(201).json(newPost);
   } catch (err) {
     const error = new Error("Post not created");
-    res.status(400).json(error.message);
+    return await res.status(400).json(err);
   }
 };
 
 const updatePost = async (req, res, next) => {
   try {
-    const { username, postId, postTitle, postBody, createdOn } = req.body;
+    const { username } = req.params;
+    const { postId, postTitle, postBody, createdOn } = req.body;
     const updatedPost = {
       postId,
       postTitle,
@@ -125,16 +114,16 @@ const updatePost = async (req, res, next) => {
       createdOn,
       updatedOn: Date.now()
     };
-    const foundUserBlog = await UserBlogModel.findOne({ username });
-    const posts = foundUserBlog.posts;
-    const postIndex = posts.findIndex(post => post.postId === postId);
-    posts.splice(postIndex, 1, updatedPost);
 
-    await foundUserBlog.save();
-    res.json(updatedPost);
+    const foundUserBlog = await UserBlogModel.findOneAndUpdate(
+      { username, "posts.postId": postId },
+      { $set: { "posts.$": updatedPost } },
+      { new: true }
+    );
+    return await res.json(updatedPost);
   } catch (err) {
     const error = new Error("Post not updated");
-    res.status(400).json(error.message);
+    return await res.status(400).json(error.message);
   }
 };
 
@@ -142,15 +131,17 @@ const deletePost = async (req, res, next) => {
   try {
     const { username } = req.params;
     const { postId } = req.body;
-    const foundUserBlog = await UserBlogModel.findOne({ username });
-    const posts = foundUserBlog.posts;
-    const postIndex = posts.findIndex(post => post.postId === postId);
-    posts.splice(postIndex, 1);
-    await foundUserBlog.save();
-    return await res.json(`Deleted post with postId:${postId} `);
+
+    const foundUserBlog = await UserBlogModel.findOneAndUpdate(
+      { username },
+      { $pull: { posts: { postId } } },
+      { new: true }
+    );
+
+    return await res.json(`Deleted post with postId: ${postId}`);
   } catch (err) {
     const error = new Error("Post not deleted");
-    res.status(400).json(error.message);
+    return await res.status(400).json(error.message);
   }
 };
 
@@ -161,12 +152,12 @@ const userLogin = async (req, res, next) => {
     const isUser = await bcrypt.compare(password, foundUser.password);
     if (isUser) {
       const jwt = generateToken(foundUser);
-      return res.json({
+      return await res.json({
         username,
         jwt
       });
     }
-    return res.status(401).json("Invalid username/password");
+    return await res.status(401).json("Invalid username/password");
   } catch (err) {
     next(err);
   }
@@ -176,10 +167,26 @@ const userLogin = async (req, res, next) => {
 const userLogout = async (req, res, next) => {
   try {
     const { username } = req.body;
-    return res.status(200).json(`user: ${username} is logged out`);
+    return await res.status(200).json(`user: ${username} is logged out`);
   } catch (err) {
     const error = new Error("User not logged out");
-    res.status(401).json(error.message);
+    return await res.status(401).json(error.message);
+  }
+};
+
+const isUserLoggedIn = async (req, res, next) => {
+  try {
+    const header = req.headers.authorization;
+    const token = header.split(" ")[1];
+    const verifyToken = token => jwt.verify(token, "mysecret");
+    const _id = verifyToken(token).sub;
+    const foundUser = await db.findOne({ _id });
+    if (foundUser) {
+      return await res.json({ username: foundUser.username });
+    }
+    return await res.sendStatus(401);
+  } catch (err) {
+    next(err);
   }
 };
 
