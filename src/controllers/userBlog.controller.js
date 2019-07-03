@@ -8,7 +8,7 @@ require("../models/userBlog.model");
 const generateToken = user =>
   jwt.sign(
     { sub: user._id, iat: new Date().getTime(), user: user.username },
-    "mysecret",
+    process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
