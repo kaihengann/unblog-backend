@@ -20,7 +20,7 @@ afterAll(async () => {
 
 beforeEach(() => {
   db.dropDatabase();
-  UserBlogs = db.collection("userBlog");
+  UserBlogs = db.collection("userblogs");
 });
 
 describe("User account", () => {
