@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const request = require("supertest");
 const app = require("../app");
 const userBlogsData = require("../data/userBlogsData");
+const userBlog = require("../src/controllers/userBlog.controller");
 
 describe("app", () => {
   let connection;
@@ -62,7 +63,7 @@ describe("app", () => {
       expect(response.status).toEqual(200);
       expect(response.body).toEqual(foundPost);
     });
-    
+
     test("POST /createUserBlog should create one user blog", async () => {
       const requestBody = {
         username: "user3",
@@ -85,29 +86,31 @@ describe("app", () => {
 
     test("POST /posts/:username should create post", async () => {
       const requestBody = {
-        postTitle: "Post2",
-        postBody: "PostBody2"
+        postTitle: "Post1",
+        postBody: "PostBody1"
       };
 
       const response = await request(app)
-        .post("/userBlogs/posts/user1")
+        .post("/userBlogs/posts/user2")
         .send(requestBody)
         .set("Content-Type", "application/json");
 
-      const found = await db
+      const updatedUserBlog = await db
         .collection("userblogs")
-        .findOne({ username: "user1" });
+        .findOne({ username: "user2" });
+      const updatedPost = updatedUserBlog.posts[0];
 
       expect(response.status).toEqual(201);
       expect(response.body).toMatchObject(requestBody);
+      expect(updatedPost).toMatchObject(requestBody);
     });
 
     test("PUT /posts should update one post", async () => {
-      const requestBody = { 
+      const requestBody = {
         postId: "postId1",
         postTitle: "PostChanged",
-        postBody: "PostBodyChanged",
-       };
+        postBody: "PostBodyChanged"
+      };
 
       const response = await request(app)
         .put("/userBlogs/posts/user1")
@@ -117,7 +120,7 @@ describe("app", () => {
       const updatedUserBlog = await db
         .collection("userblogs")
         .findOne({ username: "user1" });
-      const updatedPost = updatedUserBlog.posts[0]
+      const updatedPost = updatedUserBlog.posts[0];
 
       expect(response.status).toEqual(200);
       expect(response.body).toMatchObject(requestBody);
@@ -135,7 +138,7 @@ describe("app", () => {
       const updatedUserBlog = await db
         .collection("userblogs")
         .findOne({ username: "user1" });
-      
+
       expect(response.status).toEqual(200);
       expect(response.body).toEqual("Deleted post with postId: postId1");
       expect(response.body).toEqual("Deleted post with postId: postId1");
@@ -143,30 +146,60 @@ describe("app", () => {
     });
   });
 
-  xdescribe("User login/logout", () => {
-    let username, password, posts;
-    username = "testusername";
-    password = "testPassword123";
-    posts = [
-      {
-        title: "myfirstpost",
-        body: "somecontentityped"
-      }
-    ];
-    input = { username, password, posts };
+  describe("User login/logout", () => {
+    test("user should be able to signup and login", async () => {
+      const userInfo = {
+        username: "user3",
+        password: "Password3"
+      };
 
-    test("user should be able to login and logout", async () => {
-      const newUserBlog = await userBlog.createUserBlog(input);
-      expect(newUserBlog.username).toEqual(input.username);
+      await request(app)
+        .post("/userBlogs/createUserBlog")
+        .send(userInfo)
+        .set("Content-Type", "application/json");
+
+      const newUserBlog = await db
+        .collection("userblogs")
+        .findOne({ username: "user3" });
+
+      const response = await request(app)
+        .post("/userBlogs/login")
+        .send(userInfo)
+        .set("Content-Type", "application/json");
+
+      expect(newUserBlog).toMatchObject({ username: "user3" });
+      expect(response.status).toEqual(200);
+      expect(response.body).toMatchObject({ username: "user3" });
+      expect(response.body.jwt).toBeTruthy();
     });
 
-    test("user should not be able to login if wrong password", async () => {
-      await userBlog.createUserBlog(input);
-      input.password = "wrong password";
-      const signedInUser = await userBlog.userLogin(input);
-      expect(signedInUser).toBeFalsy();
+    test("user cannot login if password is wrong", async () => {
+      const userInfo = {
+        username: "user3",
+        password: "Password3"
+      };
+
+      const wrongUserInfo = {
+        username: "user3",
+        password: "wrongPassword"
+      };
+
+      await request(app)
+        .post("/userBlogs/createUserBlog")
+        .send(userInfo)
+        .set("Content-Type", "application/json");
+
+      const response = await request(app)
+        .post("/userBlogs/login")
+        .send(wrongUserInfo)
+        .set("Content-Type", "application/json");
+
+      expect(response.status).toEqual(401);
+      expect(response.body).toEqual("Invalid username/password");
     });
 
-    test("user should stay logged in when jwt token is present", async () => {});
+    // Complete when frontend is ready
+    xtest("user should stay logged in when jwt token is present", async () => {});
+    xtest("user should logout", async () => {});
   });
 });
