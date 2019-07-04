@@ -96,7 +96,7 @@ const createPost = async (req, res, next) => {
       { new: true }
     );
 
-    return await res.status(201).json(newPost);
+    return await res.status(201).json(foundUserBlog.posts[0]);
   } catch (err) {
     const error = new Error("Post not created");
     return await res.status(400).json(err);
@@ -120,7 +120,7 @@ const updatePost = async (req, res, next) => {
       { $set: { "posts.$": updatedPost } },
       { new: true }
     );
-    return await res.json(updatedPost);
+    return await res.json(foundUserBlog.posts[0]);
   } catch (err) {
     const error = new Error("Post not updated");
     return await res.status(400).json(error.message);
@@ -132,7 +132,7 @@ const deletePost = async (req, res, next) => {
     const { username } = req.params;
     const { postId } = req.body;
 
-    const foundUserBlog = await UserBlogModel.findOneAndUpdate(
+    await UserBlogModel.updateOne(
       { username },
       { $pull: { posts: { postId } } },
       { new: true }
@@ -150,6 +150,7 @@ const userLogin = async (req, res, next) => {
     const { username, password } = req.body;
     const foundUser = await UserBlogModel.findOne({ username });
     const isUser = await bcrypt.compare(password, foundUser.password);
+
     if (isUser) {
       const jwt = generateToken(foundUser);
       return await res.json({
@@ -178,9 +179,9 @@ const isUserLoggedIn = async (req, res, next) => {
   try {
     const header = req.headers.authorization;
     const token = header.split(" ")[1];
-    const verifyToken = token => jwt.verify(token, "mysecret");
-    const _id = verifyToken(token).sub;
-    const foundUser = await db.findOne({ _id });
+    const verifyToken = token => jwt.verify(token, process.env.JWT_SECRET);
+    const username = verifyToken(token).sub;
+    const foundUser = await db.findOne({ username });
     if (foundUser) {
       return await res.json({ username: foundUser.username });
     }
