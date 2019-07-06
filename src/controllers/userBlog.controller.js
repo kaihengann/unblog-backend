@@ -178,12 +178,20 @@ const userLogout = async (req, res, next) => {
 };
 
 const userLoggedIn = async (req, res, next) => {
-  try {
-    return await res.json({ username: req.params.username });
-  } catch (err) {
-    next(err);
-  }
-};
+    try {
+      const header = req.headers.authorization;
+      const token = header.split(" ")[1];
+      const verifyToken = token => jwt.verify(token, process.env.JWT_SECRET);
+      const _id = verifyToken(token).sub;
+      const foundUser = await UserBlogModel.findOne({ _id });
+      if (foundUser) {
+        return await res.json(foundUser.username)
+      }
+      return await res.sendStatus(401);
+    } catch (err) {
+      next(err);
+    }
+  };
 
 module.exports = {
   userLogin,
