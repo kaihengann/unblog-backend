@@ -7,7 +7,7 @@ const app = require("../app");
 const userBlogsData = require("../data/userBlogsData");
 const userBlog = require("../src/controllers/userBlog.controller");
 const bcrypt = require("bcrypt")
-const authentication = require('../src/middleware/authorisation')
+const authentication = require('../src/middleware/authorization')
 
 describe("app", () => {
   let connection;
