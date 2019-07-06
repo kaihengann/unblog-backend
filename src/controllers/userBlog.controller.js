@@ -160,11 +160,9 @@ const userLogin = async (req, res, next) => {
         jwt
       });
     }
-    return await res.status(401).json("Invalid username/password");
-  } catch (err) {
-    console.log(err.message);
     
-    next(err);
+  } catch (err) {
+    return await res.status(401).json("Invalid username/password");
   }
 };
 
