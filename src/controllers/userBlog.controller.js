@@ -1,3 +1,4 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -10,6 +11,7 @@ const generateToken = user =>
     { sub: user._id, iat: new Date().getTime(), user: user.username },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
+    
   );
 
 const UserBlogModel = mongoose.model("userBlog");
@@ -160,6 +162,8 @@ const userLogin = async (req, res, next) => {
     }
     return await res.status(401).json("Invalid username/password");
   } catch (err) {
+    console.log(err.message);
+    
     next(err);
   }
 };
@@ -175,17 +179,9 @@ const userLogout = async (req, res, next) => {
   }
 };
 
-const isUserLoggedIn = async (req, res, next) => {
+const userLoggedIn = async (req, res, next) => {
   try {
-    const header = req.headers.authorization;
-    const token = header.split(" ")[1];
-    const verifyToken = token => jwt.verify(token, process.env.JWT_SECRET);
-    const username = verifyToken(token).sub;
-    const foundUser = await db.findOne({ username });
-    if (foundUser) {
-      return await res.json({ username: foundUser.username });
-    }
-    return await res.sendStatus(401);
+    return await res.json({ username: req.params.username });
   } catch (err) {
     next(err);
   }
@@ -194,7 +190,7 @@ const isUserLoggedIn = async (req, res, next) => {
 module.exports = {
   userLogin,
   userLogout,
-  isUserLoggedIn,
+  userLoggedIn,
   findAllUserBlogs,
   findOneUserBlog,
   findAllPosts,

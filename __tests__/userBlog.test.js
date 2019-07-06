@@ -6,6 +6,7 @@ const request = require("supertest");
 const app = require("../app");
 const userBlogsData = require("../data/userBlogsData");
 const userBlog = require("../src/controllers/userBlog.controller");
+const bcrypt = require("bcrypt")
 
 describe("app", () => {
   let connection;
@@ -80,8 +81,15 @@ describe("app", () => {
         .send(requestBody)
         .set("Content-Type", "application/json");
 
+      const foundUserBlog = await db
+        .collection("userblogs")
+        .findOne({ username: "user3" });
+
+      const passwordMatch = await bcrypt.compare(requestBody.password, foundUserBlog.password);
+
       expect(response.status).toEqual(201);
       expect(response.body).toMatchObject(expectedObject);
+      expect(passwordMatch).toEqual(true);
     });
 
     test("POST /posts/:username should create post", async () => {
