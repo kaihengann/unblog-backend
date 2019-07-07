@@ -131,8 +131,7 @@ const updatePost = async (req, res, next) => {
 
 const deletePost = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const { postId } = req.body;
+    const { username, postId } = req.params;
 
     await UserBlogModel.updateOne(
       { username },

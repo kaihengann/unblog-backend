@@ -11,7 +11,7 @@ userBlogRouter.get("/posts", authorization, Ctrl.findOnePost);
 userBlogRouter.post("/createUserBlog", Ctrl.createUserBlog);
 userBlogRouter.post("/posts/:username", authorization, Ctrl.createPost);
 userBlogRouter.put("/posts/:username", authorization, Ctrl.updatePost);
-userBlogRouter.delete("/posts/:username", authorization, Ctrl.deletePost);
+userBlogRouter.delete("/posts/:username/:postId", authorization, Ctrl.deletePost);
 
 userBlogRouter.post("/login", Ctrl.userLogin);
 userBlogRouter.post("/logout", Ctrl.userLogout);

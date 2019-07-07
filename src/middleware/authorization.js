@@ -6,7 +6,9 @@ const UserBlogModel = mongoose.model("userBlog");
 
 const authorization = async (req, res, next) => {
   try {
+    console.log(req.headers.authorization);
     const header = req.headers.authorization;
+    
     const token = header.split(" ")[1];
     const verifyToken = token => jwt.verify(token, process.env.JWT_SECRET);
     const _id = verifyToken(token).sub;
